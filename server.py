@@ -54,6 +54,9 @@ print('Fetched initial data!')
 
 for coin in coins:
     coin['prices'] = []
+    client.collection('coins').document(coin['tag']).update({
+        'prices': [],
+    })
 
 
 def generate_new_price(old_price: float):
@@ -70,14 +73,17 @@ def update_prices():
         for ind, coin in enumerate(coins):
             coin['price'] = round(generate_new_price(coin['price']), 2)
             coin['gain'] = round((coin['price'] - BASE_PRICES[ind]) / 100, 2)
-            coin['prices'].append({
-                'ts': datetime.now(),
-                'price': coin['price'],
-            })
+            # coin['prices'].append({
+            #     'ts': datetime.now(),
+            #     'price': coin['price'],
+            # })
             client.collection('coins').document(coin['tag']).update({
                 'price': coin["price"],
                 'gain': coin['gain'],
-                'prices': coin['prices'],
+                'prices': firestore.ArrayUnion([{
+                    'ts': datetime.now(),
+                    'price': coin['price'],
+                }]),
             })
             # print(f'New price of {coin["name"]} = {coin["price"]}')
 
